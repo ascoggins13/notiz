@@ -152,14 +152,19 @@ const endCheckin = async () => {
   return (
     <SafeAreaView style={styles.page}>
  <View style={styles.header}>
-  <View>
+    <View style={styles.headerText}>
     <Text style={styles.checkedIn}>
       ✓ CHECKED IN
     </Text>
 
-    <Text style={styles.venueName}>
-      {venueName}
-    </Text>
+    <Text
+  style={styles.venueName}
+  numberOfLines={2}
+  adjustsFontSizeToFit
+  minimumFontScale={0.8}
+>
+  {venueName}
+</Text>
   </View>
 
   <View style={styles.headerActions}>
@@ -337,11 +342,14 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: 1.1,
   },
-
+  headerText: {
+    flex: 1,
+    paddingRight: 14,
+  },
   venueName: {
     marginTop: 5,
     color: '#29272E',
-    fontSize: 29,
+    fontSize: 27,
     fontWeight: '800',
   },
 
