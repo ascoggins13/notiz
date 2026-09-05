@@ -9,6 +9,9 @@ import { checkinsRouter } from './routes/checkins';
 import { matchesRouter } from './routes/matches';
 import { noticesRouter } from './routes/notices';
 import { usersRouter } from './routes/users';
+import { venuesRouter } from './routes/venues';
+
+
 
 const app = express();
 const port = Number(process.env.PORT ?? 4000);
@@ -22,6 +25,7 @@ app.use(rateLimit({ windowMs: 60_000, limit: 100, standardHeaders: true, legacyH
 app.get('/health', (_req, res) => res.json({ ok: true, service: 'notiz-api' }));
 app.use('/api/users', requireAuth, usersRouter);
 app.use('/api/checkins', requireAuth, checkinsRouter);
+app.use('/api/venues', requireAuth, venuesRouter);
 app.use('/api/notices', requireAuth, noticesRouter);
 app.use('/api/matches', requireAuth, matchesRouter);
 

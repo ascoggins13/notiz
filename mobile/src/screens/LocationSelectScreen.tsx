@@ -1,8 +1,14 @@
+import * as Location from 'expo-location';
 import { Alert } from 'react-native';
 import { api } from '../services/api';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import React, { useMemo, useState } from 'react';
+import React, {
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import {
+  ScrollView,
   Pressable,
   SafeAreaView,
   StyleSheet,
@@ -53,16 +59,74 @@ const nearbyPlaces: Venue[] = [
 
 export function LocationSelectScreen({ navigation }: Props) {
   const [query, setQuery] = useState('');
+  const [coordinates, setCoordinates] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
+
+  useEffect(() => {
+    const loadLocation = async () => {
+      try {
+        const permission =
+          await Location.requestForegroundPermissionsAsync();
+  
+        if (permission.status !== 'granted') {
+          Alert.alert(
+            'Location needed',
+            'Notiz uses your location to show places near you.'
+          );
+          return;
+        }
+  
+        const position =
+          await Location.getCurrentPositionAsync({
+            accuracy: Location.Accuracy.Balanced,
+          });
+  
+        const nextCoordinates = {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        };
+  
+        setCoordinates(nextCoordinates);
+        const nearbyResult = await api<{
+          venues: Venue[];
+        }>(
+          `/api/venues/nearby?lat=${nextCoordinates.latitude}&lng=${nextCoordinates.longitude}`
+        );
+
+        console.log(
+          'NEARBY VENUES FROM SERVER:',
+          nearbyResult.venues
+        );
+        
+        setVenues(nearbyResult.venues);
+  
+        console.log(
+          'NOTIZ LOCATION:',
+          nextCoordinates
+        );
+      } catch (error) {
+        console.warn(
+          'Could not get current location:',
+          error
+        );
+      }
+    };
+  
+    loadLocation();
+  }, []);
+  const [venues, setVenues] = useState<Venue[]>([]);
 
   const filteredPlaces = useMemo(() => {
     const value = query.trim().toLowerCase();
 
-    if (!value) return nearbyPlaces;
+    if (!value) return venues;
 
-    return nearbyPlaces.filter((place) =>
+    return venues.filter((place) =>
       place.name.toLowerCase().includes(value)
     );
-  }, [query]);
+  }, [query, venues]);
 
 const selectVenue = async (venue: Venue) => {
   try {
@@ -87,8 +151,12 @@ const selectVenue = async (venue: Venue) => {
     );
   }
 };
-  return (
-    <SafeAreaView style={styles.page}>
+return (
+  <SafeAreaView style={styles.page}>
+    <ScrollView
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={styles.scrollContent}
+    >
       <View style={styles.header}>
         <Text style={styles.eyebrow}>CHECK IN</Text>
         <Text style={styles.title}>Where are you?</Text>
@@ -179,7 +247,8 @@ const selectVenue = async (venue: Venue) => {
         </Text>
         <Text style={styles.addText}>Add a place</Text>
       </Pressable>
-    </SafeAreaView>
+    </ScrollView>
+  </SafeAreaView>
   );
 }
 
@@ -189,7 +258,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#FAFAFC',
     paddingHorizontal: 24,
   },
-
+  scrollContent: {
+    paddingBottom: 30,
+  },
   header: {
     paddingTop: 18,
   },
