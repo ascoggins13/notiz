@@ -1,0 +1,28 @@
+{
+  "expo": {
+    "name": "Notiz",
+    "slug": "notiz",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "plugins": [
+      "expo-notifications"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.scogginstechnologies.notiz",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "com.scogginstechnologies.notiz"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "d896626d-083d-4bac-ad6a-de0b32292586"
+      }
+    },
+    "owner": "ascogginstech"
+  }
+}
