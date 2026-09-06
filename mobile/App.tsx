@@ -16,6 +16,10 @@ export default function App() {
   const pendingNotificationRef = useRef<{
     type?: unknown;
     matchId?: unknown;
+    checkinId?: unknown;
+    venueId?: unknown;
+    venueName?: unknown;
+    venueType?: unknown;
   } | null>(null);
   const handleNotificationNavigation = (
     data: Record<string, unknown>
@@ -26,17 +30,54 @@ export default function App() {
     );
     const type = data?.type;
     const matchId = data?.matchId;
+    const checkinId = data?.checkinId;
+    const venueId = data?.venueId;
+    const venueName = data?.venueName;
+    const venueType = data?.venueType;
   
-    if (typeof matchId !== 'string') {
-      return;
-    }
-  
-    const targetRoute =
-      type === 'mutual_match'
-        ? 'MatchDetail'
-        : type === 'chat_message'
-          ? 'Chat'
-          : null;
+    if (type === 'candidate_notice') {
+        if (
+          typeof checkinId !== 'string' ||
+          typeof venueId !== 'string' ||
+          typeof venueName !== 'string' ||
+          (venueType !== 'gym' && venueType !== 'bar')
+        ) {
+          return;
+        }
+      
+        setNotificationNavigationPending();
+      
+        if (!navigationRef.current?.isReady()) {
+          pendingNotificationRef.current = data;
+          return;
+        }
+      
+        pendingNotificationRef.current = null;
+      
+        navigationRef.current.navigate('Notice', {
+          checkinId,
+          venueId,
+          venueName,
+          venueType,
+        });
+      
+        setTimeout(() => {
+          clearNotificationNavigationPending();
+        }, 1000);
+      
+        return;
+      }
+      
+      if (typeof matchId !== 'string') {
+        return;
+      }
+      
+      const targetRoute =
+        type === 'mutual_match'
+          ? 'MatchDetail'
+          : type === 'chat_message'
+            ? 'Chat'
+            : null;
   
     if (!targetRoute) {
       return;

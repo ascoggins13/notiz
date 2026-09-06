@@ -21,13 +21,15 @@ const senderBlocked =
     .where('expiresAt', '>', now)
     .get();
 
-const candidates: {
-  userId: string;
-  checkinId: string;
-  score: number;
-  rawScore: number;
-  matchedFields: string[];
-}[] = [];
+    const candidates: {
+      userId: string;
+      checkinId: string;
+      venueName: string;
+      venueType: 'gym' | 'bar';
+      score: number;
+      rawScore: number;
+      matchedFields: string[];
+    }[] = [];
 
 for (const checkinDoc of checkins.docs) {
   const checkin = checkinDoc.data();
@@ -64,6 +66,8 @@ if (candidateBlocked.includes(senderId)) {
     candidates.push({
       userId: checkin.userId,
       checkinId: checkinDoc.id,
+      venueName: checkin.venueName,
+      venueType: checkin.venueType,
       ...result,
     });
   }
@@ -112,7 +116,18 @@ if (ambiguous) {
     updatedAt: FieldValue.serverTimestamp(),
   });
 
-  await notifyUser(best.userId, 'Someone noticed you', 'Open Notiz if someone caught your attention too.', { type: 'candidate_notice' });
+  await notifyUser(
+    best.userId,
+    'Someone noticed you',
+    'Open Notiz if someone caught your attention too.',
+    {
+      type: 'candidate_notice',
+      checkinId: best.checkinId,
+      venueId,
+      venueName: best.venueName,
+      venueType: best.venueType,
+    }
+  );
 
   const reciprocal = await db.collection('notices')
     .where('senderId', '==', best.userId)
