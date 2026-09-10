@@ -128,29 +128,13 @@ export function LocationSelectScreen({ navigation }: Props) {
     );
   }, [query, venues]);
 
-const selectVenue = async (venue: Venue) => {
-  try {
-    const result = await api<{ id: string }>('/api/checkins', {
-      method: 'POST',
-      body: JSON.stringify({
-        venueId: venue.id,
-        venueName: venue.name,
-      }),
-    });
-
+  const selectVenue = (venue: Venue) => {
     navigation.navigate('SelfDescription', {
-      checkinId: result.id,
       venueId: venue.id,
       venueName: venue.name,
       venueType: venue.type,
     });
-  } catch (e) {
-    Alert.alert(
-      'Check-in failed',
-      e instanceof Error ? e.message : 'Could not check in.'
-    );
-  }
-};
+  };
 return (
   <SafeAreaView style={styles.page}>
     <ScrollView

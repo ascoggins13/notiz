@@ -9,6 +9,9 @@ import {
   Text,
   TextInput,
   View,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
 } from 'react-native';
 
 import { auth } from '../services/firebase';
@@ -87,7 +90,16 @@ export function RegisterScreen({
   };
   return (
     <SafeAreaView style={styles.page}>
-      <View style={styles.header}>
+      <KeyboardAvoidingView
+        style={styles.keyboardView}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.header}>
         <Text style={styles.eyebrow}>
           CREATE YOUR NOTIZ
         </Text>
@@ -207,15 +219,25 @@ export function RegisterScreen({
             Already have an account? Sign in
           </Text>
         </Pressable>
-      </View>
-    </SafeAreaView>
-  );
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  </SafeAreaView>
+);
 }
 
 const styles = StyleSheet.create({
   page: {
     flex: 1,
     backgroundColor: '#FAFAFC',
+  },
+  
+  keyboardView: {
+    flex: 1,
+  },
+  
+  scrollContent: {
+    flexGrow: 1,
     padding: 26,
   },
 
@@ -337,13 +359,13 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   agreementCopy: {
-    flex: 1,
-  },
-  
-  agreementLink: {
-    color: '#5427A5',
-    fontWeight: '800',
-    textDecorationLine: 'underline',
-  },
+  flex: 1,
+},
+
+agreementLink: {
+  color: '#5427A5',
+  fontWeight: '800',
+  textDecorationLine: 'underline',
+},
 
 });

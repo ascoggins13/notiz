@@ -1,9 +1,11 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import React, {
   useCallback,
+  useEffect,
   useRef,
   useState,
-} from 'react';import { useFocusEffect } from '@react-navigation/native';
+} from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import { api } from '../services/api';
 import {
   Pressable,
@@ -35,17 +37,22 @@ const dotPositions = [
   { top: '33%', left: '12%' },
   { top: '58%', left: '48%' },
 ];
+const presentedMatchIds = new Set<string>();
+
 export function ActiveVenueScreen({
+  
   route,
   navigation,
 }: Props) {
 
-const {
-  checkinId,
-  venueId,
-  venueName,
-  venueType,
-} = route.params;
+  
+  const {
+    checkinId,
+    venueId,
+    venueName,
+    venueType,
+    handledMatchId,
+  } = route.params;
 
 const [venueCount, setVenueCount] = useState(1);
 const otherPeopleCount = Math.max(venueCount - 1, 0);
@@ -56,7 +63,7 @@ const visibleDots = dotPositions.slice(
 );
 const [hasIncoming, setHasIncoming] = useState(false);
 const [unreadCount, setUnreadCount] = useState(0);
-const openedMatchId = useRef<string | null>(null);
+
 
 useFocusEffect(
   useCallback(() => {
@@ -83,9 +90,9 @@ useFocusEffect(
           active &&
           sentStatus.status === 'mutual' &&
           sentStatus.matchId &&
-          openedMatchId.current !== sentStatus.matchId
+          !presentedMatchIds.has(sentStatus.matchId)
         ) {
-          openedMatchId.current = sentStatus.matchId;
+          presentedMatchIds.add(sentStatus.matchId);
         
           navigation.navigate('MatchDetail', {
             matchId: sentStatus.matchId,

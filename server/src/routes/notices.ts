@@ -174,7 +174,6 @@ noticesRouter.post('/', async (req, res) => {
         'searching',
         'needs_clarification',
         'candidate_found',
-        'mutual',
       ]
     )
     .limit(1).get();

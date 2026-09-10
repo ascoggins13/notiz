@@ -1,5 +1,5 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   Alert,
   Pressable,
@@ -9,6 +9,8 @@ import {
   Text,
   TextInput,
   View,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 
 import { api } from '../services/api';
@@ -48,6 +50,39 @@ const gymBottomTypes = [
   'Track pants',
 ];
 
+const barTopTypes = [
+  'T-shirt',
+  'Polo',
+  'Button-up',
+  'Blouse',
+  'Tank top',
+  'Sweater',
+  'Hoodie',
+  'Jacket',
+  'Dress',
+  'Other',
+];
+
+const barBottomTypes = [
+  'Jeans',
+  'Pants',
+  'Shorts',
+  'Skirt',
+  'Dress',
+  'Other',
+];
+
+const barShoeTypes = [
+  'Sneakers',
+  'Heels',
+  'Boots',
+  'Loafers',
+  'Flats',
+  'Sandals',
+  'Dress shoes',
+  'Other',
+];
+
 const jewelryOptions = [
   'Watch',
   'Smartwatch',
@@ -85,11 +120,19 @@ const barAreas = [
   'Outside',
 ];
 
-const identifiers = [
+const gymIdentifiers = [
   { value: 'headphones', icon: '🎧', label: 'Headphones' },
   { value: 'hat', icon: '🧢', label: 'Hat' },
   { value: 'glasses', icon: '👓', label: 'Glasses' },
   { value: 'water bottle', icon: '🥤', label: 'Bottle' },
+  { value: 'tattoo', icon: '✦', label: 'Tattoo' },
+];
+
+const barIdentifiers = [
+  { value: 'hairstyle', icon: '💇', label: 'Hairstyle' },
+  { value: 'facial hair', icon: '🧔', label: 'Facial hair' },
+  { value: 'hat', icon: '🧢', label: 'Hat' },
+  { value: 'glasses', icon: '👓', label: 'Glasses' },
   { value: 'tattoo', icon: '✦', label: 'Tattoo' },
 ];
 
@@ -101,6 +144,9 @@ export function NoticeScreen({ route, navigation }: Props) {
     venueType,
   } = route.params;
 
+  const scrollRef = useRef<ScrollView>(null);
+
+
 const [gender, setGender] = useState('');
 
 const [topType, setTopType] = useState('');
@@ -109,6 +155,7 @@ const [shirtColor, setShirtColor] = useState('');
 const [bottomType, setBottomType] = useState('');
 const [pantsColor, setPantsColor] = useState('');
 
+const [shoeType, setShoeType] = useState('');
 const [shoeColor, setShoeColor] = useState('');
 
 const [selectedJewelry, setSelectedJewelry] = useState<string[]>([]);
@@ -130,6 +177,10 @@ const [clarificationNoticeId, setClarificationNoticeId] =
 const [clarificationText, setClarificationText] =
   useState('');
   const areas = venueType === 'gym' ? gymAreas : barAreas;
+  const identifiers =
+  venueType === 'gym'
+    ? gymIdentifiers
+    : barIdentifiers;
 
   const toggleIdentifier = (value: string) => {
     setSelectedIdentifiers((current) =>
@@ -162,6 +213,14 @@ if (
       return;
     }
 
+    if (venueType === 'bar' && !shoeType) {
+      Alert.alert(
+        'Almost there',
+        'Choose their shoe type.'
+      );
+      return;
+    }
+
     try {
       setLoading(true);
 
@@ -188,7 +247,12 @@ targetDescription: {
   bottomType,
   pantsColor,
 
-  shoeColor,
+  shoeType:
+  venueType === 'bar'
+    ? shoeType
+    : undefined,
+
+shoeColor,
 
   jewelry: selectedJewelry,
 
@@ -339,7 +403,11 @@ targetDescription: {
   if (needsClarification) {
     return (
       <SafeAreaView style={styles.page}>
-        <View style={styles.clarificationPage}>
+        <KeyboardAvoidingView
+          style={styles.keyboardView}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+          <View style={styles.clarificationPage}>
           <View style={styles.clueIcon}>
             <Text style={styles.clueIconText}>?</Text>
           </View>
@@ -381,16 +449,24 @@ targetDescription: {
               {loading ? 'CHECKING...' : 'ADD CLUE'}
             </Text>
           </Pressable>
-        </View>
-      </SafeAreaView>
-    );
-  } 
+          </View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
+  );
+}
   return (
     <SafeAreaView style={styles.page}>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.content}
+      <KeyboardAvoidingView
+        style={styles.keyboardView}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
+        <ScrollView
+          ref={scrollRef}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.content}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+        >
         <Text style={styles.eyebrow}>{venueName.toUpperCase()}</Text>
 
         <Text style={styles.title}>Who did you notice?</Text>
@@ -406,28 +482,32 @@ targetDescription: {
           onSelect={setGender}
         />
        
-       {venueType === 'gym' && (
-  <OptionSection
-    title="Top type"
-    options={gymTopTypes}
-    selected={topType}
-    onSelect={setTopType}
-  />
-)}
+       <OptionSection
+  title="Top type"
+  options={
+    venueType === 'gym'
+      ? gymTopTypes
+      : barTopTypes
+  }
+  selected={topType}
+  onSelect={setTopType}
+/>
 
         <ColorSection
           title="Top"
           selected={shirtColor}
           onSelect={setShirtColor}
         />
-{venueType === 'gym' && (
-  <OptionSection
-    title="Bottom type"
-    options={gymBottomTypes}
-    selected={bottomType}
-    onSelect={setBottomType}
-  />
-)}
+<OptionSection
+  title="Bottom type"
+  options={
+    venueType === 'gym'
+      ? gymBottomTypes
+      : barBottomTypes
+  }
+  selected={bottomType}
+  onSelect={setBottomType}
+/>
 
 
         <ColorSection
@@ -435,6 +515,14 @@ targetDescription: {
           selected={pantsColor}
           onSelect={setPantsColor}
         />
+        {venueType === 'bar' && (
+  <OptionSection
+    title="Shoe type"
+    options={barShoeTypes}
+    selected={shoeType}
+    onSelect={setShoeType}
+  />
+)}
 
         <ColorSection
           title="Shoes"
@@ -527,12 +615,19 @@ targetDescription: {
           </View>
 
           <TextInput
-            value={otherIdentifier}
-            onChangeText={setOtherIdentifier}
-            placeholder="Purple bottle, Tigers hat..."
-            placeholderTextColor="#AAA6AF"
-            style={styles.otherInput}
-          />
+  value={otherIdentifier}
+  onChangeText={setOtherIdentifier}
+  placeholder="Purple bottle, Tigers hat..."
+  placeholderTextColor="#AAA6AF"
+  style={styles.otherInput}
+  onFocus={() => {
+    setTimeout(() => {
+      scrollRef.current?.scrollToEnd({
+        animated: true,
+      });
+    }, 250);
+  }}
+/>
         </View>
 
         <Pressable
@@ -545,9 +640,10 @@ targetDescription: {
             {loading ? 'SENDING...' : 'SEND NOTIZ'}
           </Text>
         </Pressable>
-      </ScrollView>
-    </SafeAreaView>
-  );
+        </ScrollView>
+    </KeyboardAvoidingView>
+  </SafeAreaView>
+);
 }
 
 function ColorSection({
@@ -642,6 +738,9 @@ const styles = StyleSheet.create({
   page: {
     flex: 1,
     backgroundColor: '#FAFAFC',
+  },
+  keyboardView: {
+    flex: 1,
   },
 
   content: {

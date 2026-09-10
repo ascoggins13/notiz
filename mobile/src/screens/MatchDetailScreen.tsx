@@ -21,6 +21,7 @@ type MatchDetail = {
   id: string;
   status: string;
   venueId: string;
+  venueType: 'gym' | 'bar';
   otherUser: {
     displayName: string;
   };
@@ -28,7 +29,7 @@ type MatchDetail = {
   theirPreference: string | null;
 };
 
-const options = [
+const gymOptions = [
   {
     value: 'approach_now',
     icon: '👋',
@@ -53,23 +54,26 @@ const options = [
     label: 'Chat first',
     copy: 'Let’s talk in Notiz first.',
   },
+] as const;
+
+const barOptions = [
   {
-    value: 'exchange_contact',
-    icon: '📱',
-    label: 'Exchange info',
-    copy: 'Let’s connect privately.',
+    value: 'chat_first',
+    icon: '💬',
+    label: 'Chat first',
+    copy: 'Let’s talk here first.',
   },
   {
-    value: 'meet_here',
-    icon: '📍',
-    label: 'Meet somewhere here',
-    copy: 'Choose a spot at this location.',
+    value: 'approach_now',
+    icon: '👋',
+    label: 'Come say hi',
+    copy: 'You can approach me.',
   },
   {
-    value: 'meet_later',
-    icon: '📅',
-    label: 'Meet another day',
-    copy: 'Let’s plan something later.',
+    value: 'have_a_drink',
+    icon: '🥂',
+    label: 'Have a drink with me',
+    copy: 'Meet me at the bar.',
   },
 ] as const;
 
@@ -80,6 +84,10 @@ export function MatchDetailScreen({
   const [selected, setSelected] = useState('');
   const [loading, setLoading] = useState(true);
 const [showAfterWorkoutTimes, setShowAfterWorkoutTimes] = useState(false);
+const options =
+  match?.venueType === 'bar'
+    ? barOptions
+    : gymOptions;
 
   const noteScale = useRef(new Animated.Value(0.78)).current;
   const noteOpacity = useRef(new Animated.Value(0)).current;

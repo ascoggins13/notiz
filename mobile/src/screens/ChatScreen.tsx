@@ -1,16 +1,20 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import React, { useCallback, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import {
   ActivityIndicator,
   Alert,
   FlatList,
-  KeyboardAvoidingView,
-  Platform,
   Pressable,
   SafeAreaView,
   StyleSheet,
   Text,
   TextInput,
+  Keyboard,
   View,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
@@ -59,7 +63,29 @@ export function ChatScreen({ route, navigation }: Props) {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [showSafetyMenu, setShowSafetyMenu] = useState(false);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
   const listRef = useRef<FlatList<Message>>(null);
+
+  useEffect(() => {
+    const showSubscription = Keyboard.addListener(
+      'keyboardWillShow',
+      (event) => {
+        setKeyboardHeight(event.endCoordinates.height);
+      }
+    );
+  
+    const hideSubscription = Keyboard.addListener(
+      'keyboardWillHide',
+      () => {
+        setKeyboardHeight(0);
+      }
+    );
+  
+    return () => {
+      showSubscription.remove();
+      hideSubscription.remove();
+    };
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -216,11 +242,8 @@ export function ChatScreen({ route, navigation }: Props) {
   }
 
   return (
-    <SafeAreaView style={styles.page}>
-      <KeyboardAvoidingView
-        style={styles.page}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
+
+      <SafeAreaView style={styles.page}>
        <View style={styles.header}>
   <Text style={styles.eyebrow}>
     YOU NOTICED EACH OTHER
@@ -275,10 +298,28 @@ export function ChatScreen({ route, navigation }: Props) {
   </View>
 )}
   <Pressable
-    style={styles.homeButton}
-    onPress={() => {
-      navigation.pop(3);
-    }}
+  style={styles.homeButton}
+  onPress={() => {
+    const state = navigation.getState();
+  
+    const activeVenueRoute = [...state.routes]
+      .reverse()
+      .find((item) => item.name === 'ActiveVenue');
+  
+    if (activeVenueRoute) {
+      navigation.dispatch({
+        type: 'SET_PARAMS',
+        source: activeVenueRoute.key,
+        payload: {
+          params: {
+            handledMatchId: route.params.matchId,
+          },
+        },
+      });
+    }
+  
+    navigation.pop(3);
+  }}
   >
     <Text style={styles.homeButtonText}>
       HOME
@@ -293,6 +334,7 @@ export function ChatScreen({ route, navigation }: Props) {
   keyExtractor={(item) => item.id}
   contentContainerStyle={styles.messages}
   keyboardShouldPersistTaps="handled"
+  keyboardDismissMode="interactive"
   onContentSizeChange={() =>
     listRef.current?.scrollToEnd({ animated: true })
   }
@@ -357,7 +399,14 @@ export function ChatScreen({ route, navigation }: Props) {
       
         
 
-        <View style={styles.composer}>
+<View
+  style={[
+    styles.composer,
+    keyboardHeight > 0 && {
+      marginBottom: keyboardHeight,
+    },
+  ]}
+>
           <TextInput
             value={text}
             onChangeText={setText}
@@ -368,6 +417,13 @@ export function ChatScreen({ route, navigation }: Props) {
             maxLength={1000}
             returnKeyType="send"
   blurOnSubmit={false}
+  onFocus={() => {
+    setTimeout(() => {
+      listRef.current?.scrollToEnd({
+        animated: true,
+      });
+    }, 250);
+  }}
   onSubmitEditing={() => {
     if (text.trim()) {
       send();
@@ -388,9 +444,8 @@ export function ChatScreen({ route, navigation }: Props) {
               {sending ? '...' : '↑'}
             </Text>
           </Pressable>
-        </View>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+          </View>
+      </SafeAreaView>
   );
 }
 

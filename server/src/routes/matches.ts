@@ -172,7 +172,7 @@ return res.json({
   id: matchSnap.id,
   status: match.status,
   venueId: match.venueId,
-  
+  venueType: match.venueType,
   myUserId: req.user!.uid,
   
   otherUser: {
@@ -377,6 +377,7 @@ matchesRouter.post('/:id/counter-proposal', async (req, res) => {
     'chat_first',
     'exchange_contact',
     'meet_later',
+    'have_a_drink',
   ];
 
   if (!allowed.includes(preference)) {

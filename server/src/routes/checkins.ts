@@ -75,7 +75,52 @@ checkinsRouter.post('/', async (req, res) => {
   });
   return res.status(201).json({ id: ref.id });
 });
+checkinsRouter.get('/recent', async (req, res) => {
+  try {
+    const snap = await db
+      .collection('checkins')
+      .where('userId', '==', req.user!.uid)
+      .orderBy('checkedInAt', 'desc')
+      .limit(10)
+      .get();
 
+    const seenVenueIds = new Set<string>();
+
+    const recent = snap.docs
+      .map((doc) => {
+        const data = doc.data();
+
+        return {
+          id: doc.id,
+          venueId: data.venueId,
+          venueName: data.venueName,
+          venueType: data.venueType,
+          createdAt: data.createdAt,
+        };
+      })
+      .filter((item) => {
+        if (!item.venueId) {
+          return false;
+        }
+
+        if (seenVenueIds.has(item.venueId)) {
+          return false;
+        }
+
+        seenVenueIds.add(item.venueId);
+        return true;
+      })
+      .slice(0, 2);
+
+    res.json(recent);
+  } catch (error) {
+    console.error('Could not load recent check-ins', error);
+
+    res.status(500).json({
+      error: 'Could not load recent check-ins',
+    });
+  }
+});
 checkinsRouter.put('/:id/self-description', async (req, res) => {
   const parsed = appearanceSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });

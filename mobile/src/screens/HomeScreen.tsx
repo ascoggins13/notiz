@@ -16,19 +16,17 @@ import {
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
-const places = [
-  {
-    name: 'Planet Fitness',
-    subtitle: 'Most recent',
-  },
-  {
-    name: 'LA Fitness',
-    subtitle: 'Frequent',
-  },
-];
 
 export function HomeScreen({ navigation }: Props) {
   const [checkingActive, setCheckingActive] = useState(false);
+  const [places, setPlaces] = useState<
+  {
+    id: string;
+    venueId: string;
+    venueName: string;
+    venueType: 'gym' | 'bar';
+  }[]
+>([]);
 
 useFocusEffect(
   useCallback(() => {
@@ -54,6 +52,8 @@ useFocusEffect(
             venueType: 'gym' | 'bar';
           } | null;
         }>('/api/checkins/active');
+
+      
 
         if (
           active &&
@@ -86,6 +86,42 @@ useFocusEffect(
     };
   }, [navigation])
 );
+useFocusEffect(
+  useCallback(() => {
+    let active = true;
+
+    const loadRecentPlaces = async () => {
+      try {
+        const result = await api<
+          {
+            id: string;
+            venueId: string;
+            venueName: string;
+            venueType: 'gym' | 'bar';
+          }[]
+        >('/api/checkins/recent');
+
+console.log('RECENT PLACES:', result);
+
+        if (active) {
+          setPlaces(result);
+        }
+      } catch (e) {
+        console.warn(
+          'Could not load recent places',
+          e
+        );
+      }
+    };
+
+    loadRecentPlaces();
+
+    return () => {
+      active = false;
+    };
+  }, [])
+);
+
   const [unreadCount, setUnreadCount] = useState(0);
 
 useFocusEffect(
@@ -125,15 +161,13 @@ useFocusEffect(
   return (
     <SafeAreaView style={styles.page}>
       <View style={styles.header}>
-        <View>
-          <Text style={styles.logo}>Notiz</Text>
-          <Text style={styles.subtitle}>Ready when you notice someone.</Text>
-        </View>
-
-        <Pressable style={styles.profileButton}>
-          <Text style={styles.profileText}>A</Text>
-        </Pressable>
-      </View>
+  <View>
+    <Text style={styles.logo}>Notiz</Text>
+    <Text style={styles.subtitle}>
+      Ready when you notice someone.
+    </Text>
+  </View>
+</View>
 
       <View style={styles.center}>
         <Pressable
@@ -161,16 +195,33 @@ onPress={() => navigation.navigate('LocationSelect')}
         </View>
 
         <View style={styles.placeList}>
-          {places.map((place) => (
-            <Pressable key={place.name} style={styles.placeCard}>
-              <View>
-                <Text style={styles.placeName}>{place.name}</Text>
-                <Text style={styles.placeSubtitle}>{place.subtitle}</Text>
-              </View>
+        {places.map((place, index) => (
+  <Pressable
+    key={place.venueId}
+    style={styles.placeCard}
+    onPress={() =>
+      navigation.navigate('SelfDescription', {
+        venueId: place.venueId,
+        venueName: place.venueName,
+        venueType: place.venueType,
+      })
+    }
+  >
+    <View>
+      <Text style={styles.placeName}>
+        {place.venueName}
+      </Text>
 
-              <Text style={styles.arrow}>›</Text>
-            </Pressable>
-          ))}
+      <Text style={styles.placeSubtitle}>
+        {index === 0
+          ? 'Most recent'
+          : 'Previously visited'}
+      </Text>
+    </View>
+
+    <Text style={styles.arrow}>›</Text>
+  </Pressable>
+))}
         </View>
       </View>
 
@@ -235,21 +286,6 @@ const styles = StyleSheet.create({
     marginTop: 3,
     fontSize: 14,
     color: '#89858E',
-  },
-
-  profileButton: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: '#EEEAF6',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  profileText: {
-    color: '#5427A5',
-    fontWeight: '800',
-    fontSize: 16,
   },
 
   center: {

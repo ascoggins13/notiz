@@ -20,18 +20,18 @@ export type RootStackParamList = {
   
 
   SelfDescription: {
-    checkinId: string;
     venueId: string;
     venueName: string;
     venueType: VenueType;
   };
 
-ActiveVenue: {
-  checkinId: string;
-  venueId: string;
-  venueName: string;
-  venueType: VenueType;
-};
+  ActiveVenue: {
+    checkinId: string;
+    venueId: string;
+    venueName: string;
+    venueType: VenueType;
+    handledMatchId?: string;
+  };
 
 Notice: {
   checkinId: string;

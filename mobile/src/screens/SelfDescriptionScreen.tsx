@@ -9,6 +9,8 @@ import {
   Text,
   TextInput,
   View,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 
 import { api } from '../services/api';
@@ -59,7 +61,18 @@ const gymTopTypes = [
   'Sports bra',
   'Jacket',
 ];
-
+const barTopTypes = [
+  'T-shirt',
+  'Polo',
+  'Button-up',
+  'Blouse',
+  'Tank top',
+  'Sweater',
+  'Hoodie',
+  'Jacket',
+  'Dress',
+  'Other',
+];
 const gymBottomTypes = [
   'Shorts',
   'Leggings',
@@ -67,7 +80,14 @@ const gymBottomTypes = [
   'Sweatpants',
   'Track pants',
 ];
-
+const barBottomTypes = [
+  'Jeans',
+  'Pants',
+  'Shorts',
+  'Skirt',
+  'Dress',
+  'Other',
+];
 const jewelryOptions = [
   'Watch',
   'Smartwatch',
@@ -86,12 +106,31 @@ const barAreas = [
   'Upstairs',
   'Outside',
 ];
+const barShoeTypes = [
+  'Sneakers',
+  'Heels',
+  'Boots',
+  'Loafers',
+  'Flats',
+  'Sandals',
+  'Dress shoes',
+  'Other',
+];
 
-const identifiers = [
+const gymIdentifiers = [
   { value: 'headphones', icon: '🎧', label: 'Headphones' },
   { value: 'hat', icon: '🧢', label: 'Hat' },
   { value: 'glasses', icon: '👓', label: 'Glasses' },
   { value: 'water bottle', icon: '🥤', label: 'Bottle' },
+  { value: 'watch', icon: '⌚', label: 'Watch' },
+  { value: 'tattoo', icon: '✦', label: 'Tattoo' },
+];
+
+const barIdentifiers = [
+  { value: 'hairstyle', icon: '💇', label: 'Hairstyle' },
+  { value: 'facial hair', icon: '🧔', label: 'Facial hair' },
+  { value: 'hat', icon: '🧢', label: 'Hat' },
+  { value: 'glasses', icon: '👓', label: 'Glasses' },
   { value: 'watch', icon: '⌚', label: 'Watch' },
   { value: 'tattoo', icon: '✦', label: 'Tattoo' },
 ];
@@ -101,7 +140,6 @@ export function SelfDescriptionScreen({
   navigation,
 }: Props) {
   const {
-    checkinId,
     venueId,
     venueName,
     venueType,
@@ -110,6 +148,7 @@ export function SelfDescriptionScreen({
   const [shirtColor, setShirtColor] = useState('');
   const [pantsColor, setPantsColor] = useState('');
   const [shoeColor, setShoeColor] = useState('');
+  const [shoeType, setShoeType] = useState('');
   const [activity, setActivity] = useState('');
   const [venueArea, setVenueArea] = useState('');
   const [selectedIdentifiers, setSelectedIdentifiers] = useState<string[]>([]);
@@ -120,6 +159,10 @@ export function SelfDescriptionScreen({
   const [selectedJewelry, setSelectedJewelry] = useState<string[]>([]);	
 
   const areas = venueType === 'gym' ? gymAreas : barAreas;
+  const identifiers =
+  venueType === 'gym'
+    ? gymIdentifiers
+    : barIdentifiers;
 
  const toggleJewelry = (value: string) => {
   setSelectedJewelry((current) =>
@@ -152,6 +195,14 @@ if (
       return;
     }
 
+    if (venueType === 'bar' && !shoeType) {
+      Alert.alert(
+        'Almost there',
+        'Choose your shoe type.'
+      );
+      return;
+    }
+
     if (venueType === 'gym' && !activity) {
       Alert.alert(
         'What are you working on?',
@@ -169,15 +220,29 @@ if (
           ? [otherIdentifier.trim()]
           : []),
       ];
+      const result = await api<{ id: string }>('/api/checkins', {
+        method: 'POST',
+        body: JSON.stringify({
+          venueId,
+          venueName,
+          venueType,
+        }),
+      });
+      
+      const checkinId = result.id;
 
       await api(`/api/checkins/${checkinId}/self-description`, {
         method: 'PUT',
         body: JSON.stringify({
           shirtColor,
           pantsColor,
-          shoeColor,
-	  topType,
-          bottomType,
+          shoeType:
+  venueType === 'bar'
+    ? shoeType
+    : undefined,
+shoeColor,
+topType,
+bottomType,
           jewelry: selectedJewelry,	
           identifiers: finalIdentifiers,
           venueArea,
@@ -206,10 +271,15 @@ if (
 
   return (
     <SafeAreaView style={styles.page}>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.content}
+      <KeyboardAvoidingView
+        style={styles.keyboardView}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.content}
+          keyboardShouldPersistTaps="handled"
+        >
         <Text style={styles.eyebrow}>
           {venueName.toUpperCase()}
         </Text>
@@ -220,14 +290,16 @@ if (
           This helps someone who noticed you find the right person.
         </Text>
 	
-	{venueType === 'gym' && (
-  <OptionSection
-    title="Top type"
-    options={gymTopTypes}
-    selected={topType}
-    onSelect={setTopType}
-  />
-)}
+        <OptionSection
+  title="Top type"
+  options={
+    venueType === 'gym'
+      ? gymTopTypes
+      : barTopTypes
+  }
+  selected={topType}
+  onSelect={setTopType}
+/>
 
         <ColorSection
           title="Top"
@@ -235,21 +307,30 @@ if (
           onSelect={setShirtColor}
         />
 
-{venueType === 'gym' && (
   <OptionSection
-    title="Bottom type"
-    options={gymBottomTypes}
-    selected={bottomType}
-    onSelect={setBottomType}
-  />
-)}
+  title="Bottom type"
+  options={
+    venueType === 'gym'
+      ? gymBottomTypes
+      : barBottomTypes
+  }
+  selected={bottomType}
+  onSelect={setBottomType}
+/>
 
         <ColorSection
           title="Bottom"
           selected={pantsColor}
           onSelect={setPantsColor}
         />
-
+        {venueType === 'bar' && (
+          <OptionSection
+            title="Shoe type"
+            options={barShoeTypes}
+            selected={shoeType}
+            onSelect={setShoeType}
+          />
+        )}
         <ColorSection
           title="Shoes"
           selected={shoeColor}
@@ -370,9 +451,10 @@ if (
             {loading ? 'CHECKING IN...' : 'CHECK IN'}
           </Text>
         </Pressable>
-      </ScrollView>
-    </SafeAreaView>
-  );
+        </ScrollView>
+    </KeyboardAvoidingView>
+  </SafeAreaView>
+);
 }
 
 function ColorSection({
@@ -475,6 +557,9 @@ const styles = StyleSheet.create({
   page: {
     flex: 1,
     backgroundColor: '#FAFAFC',
+  },
+  keyboardView: {
+    flex: 1,
   },
 
   content: {

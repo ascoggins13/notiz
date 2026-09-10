@@ -31,6 +31,10 @@ const counterProposalLabels: Record<
     icon: '💬',
     label: 'Chat first',
   },
+  have_a_drink: {
+    icon: '🥂',
+    label: 'Have a drink with me',
+  },
   exchange_contact: {
     icon: '📱',
     label: 'Exchange info',
@@ -46,6 +50,7 @@ const agreedLabels: Record<string, string> = {
   chat_first: 'Chat first',
   exchange_contact: 'Exchange info',
   meet_later: 'Meet another day',
+  have_a_drink: 'Have a drink with me',
 };
 
 type MatchDetail = {
@@ -110,6 +115,12 @@ const preferenceContent: Record<
     icon: '💬',
     title: (name) => `${name} would like to chat first.`,
     copy: 'Start with a private conversation in Notiz.',
+  },
+
+  have_a_drink: {
+    icon: '🥂',
+    title: (name) => `${name} would like to have a drink with you.`,
+    copy: 'Meet them at the bar and say hi.',
   },
 
   exchange_contact: {
@@ -379,6 +390,8 @@ const respondToCounterProposal = async (
         </Pressable>
       )}
 
+
+
       {match.counterProposal.preference === 'meet_later' && (
         <Pressable style={styles.primaryButton}>
           <Text style={styles.primaryText}>
@@ -501,11 +514,10 @@ const respondToCounterProposal = async (
           {showAlternatives && (
             <View style={styles.alternativeOptions}>
               {[
-                ['approach_now', '👋', 'Come say hi'],
-                ['chat_first', '💬', 'Chat first'],
-                ['exchange_contact', '📱', 'Exchange info'],
-                ['meet_later', '📅', 'Meet another day'],
-              ].map(([value, icon, label]) => (
+  ['approach_now', '👋', 'Come say hi'],
+  ['chat_first', '💬', 'Chat first'],
+  ['have_a_drink', '🥂', 'Have a drink with me'],
+].map(([value, icon, label]) => (
                 <Pressable
                   key={value}
                   style={styles.alternativeOption}
@@ -669,12 +681,26 @@ const respondToCounterProposal = async (
           </Pressable>
         )}
 
-        {(match.theirPreference === 'approach_now' ||
-          match.theirPreference === 'between_sets') && (
-          <Text style={styles.doneText}>
-            Notiz has done its job. The rest happens in person.
-          </Text>
-        )}
+{(match.theirPreference === 'approach_now' ||
+  match.theirPreference === 'between_sets' ||
+  match.theirPreference === 'have_a_drink') && (
+  <>
+    <Text style={styles.doneText}>
+      Notiz has done its job. The rest happens in person.
+    </Text>
+
+    <Pressable
+      style={[styles.primaryButton, { marginTop: 18 }]}
+      onPress={() => {
+        navigation.popToTop();
+      }}
+    >
+      <Text style={styles.primaryText}>
+        BACK TO HOME
+      </Text>
+    </Pressable>
+  </>
+)}
       </View>
     </SafeAreaView>
   );

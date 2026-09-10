@@ -145,8 +145,9 @@ const matchKey = `${venueId}_${sortedUserIds.join('_')}`;
 const matchRef = db.collection('matches').doc(matchKey);
   const batch = db.batch();
   batch.set(matchRef, {
-    userIds:  sortedUserIds,
+    userIds: sortedUserIds,
     venueId,
+    venueType: best.venueType,
     noticeIds: [noticeId, reciprocalDoc.id],
     status: 'mutual',
     preferences: {},

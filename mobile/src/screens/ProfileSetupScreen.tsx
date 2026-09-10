@@ -2,8 +2,12 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import React, { useState } from 'react';
 import {
   Alert,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
   Pressable,
   SafeAreaView,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -105,6 +109,16 @@ export function ProfileSetupScreen({
 
   return (
     <SafeAreaView style={styles.page}>
+      <KeyboardAvoidingView
+        style={styles.keyboardView}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+          showsVerticalScrollIndicator={false}
+        >
       <Text style={styles.eyebrow}>YOUR PROFILE</Text>
 
       <Text style={styles.title}>
@@ -148,7 +162,10 @@ export function ProfileSetupScreen({
                 styles.option,
                 gender === item && styles.optionActive,
               ]}
-              onPress={() => setGender(item)}
+              onPress={() => {
+                Keyboard.dismiss();
+                setGender(item);
+              }}
             >
               <Text
                 style={[
@@ -175,7 +192,10 @@ export function ProfileSetupScreen({
                   styles.option,
                   active && styles.optionActive,
                 ]}
-                onPress={() => toggleInterestedIn(item)}
+                onPress={() => {
+                  Keyboard.dismiss();
+                  toggleInterestedIn(item);
+                }}
               >
                 <Text
                   style={[
@@ -203,14 +223,24 @@ export function ProfileSetupScreen({
           {loading ? 'SAVING...' : 'FINISH SETUP'}
         </Text>
       </Pressable>
-    </SafeAreaView>
-  );
+      </ScrollView>
+    </KeyboardAvoidingView>
+  </SafeAreaView>
+);
 }
 
 const styles = StyleSheet.create({
   page: {
     flex: 1,
     backgroundColor: '#FAFAFC',
+  },
+  
+  keyboardView: {
+    flex: 1,
+  },
+  
+  scrollContent: {
+    flexGrow: 1,
     padding: 26,
   },
 

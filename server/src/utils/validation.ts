@@ -8,6 +8,7 @@ export const appearanceSchema = z.object({
 
   bottomType: z.string().trim().max(40).optional(),
   pantsColor: z.string().trim().max(30).optional(),
+  shoeType: z.string().trim().max(40).optional(),
 
   shoeColor: z.string().trim().max(30).optional(),
 
@@ -28,6 +29,7 @@ export const appearanceSchema = z.object({
 export const checkinSchema = z.object({
   venueId: z.string().trim().min(1).max(120),
   venueName: z.string().trim().min(1).max(120),
+  venueType: z.enum(['gym', 'bar']),
 });
 
 export const preferenceSchema = z.object({
@@ -39,6 +41,7 @@ export const preferenceSchema = z.object({
     'exchange_contact',
     'meet_here',
     'meet_later',
+    'have_a_drink',
   ]),
 });
 
