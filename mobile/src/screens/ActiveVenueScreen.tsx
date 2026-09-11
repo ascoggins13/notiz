@@ -90,6 +90,7 @@ useFocusEffect(
           active &&
           sentStatus.status === 'mutual' &&
           sentStatus.matchId &&
+          sentStatus.matchId !== handledMatchId &&
           !presentedMatchIds.has(sentStatus.matchId)
         ) {
           presentedMatchIds.add(sentStatus.matchId);
@@ -135,7 +136,7 @@ if (active) {
       active = false;
       clearInterval(interval);
     };
-}, [checkinId, venueId, navigation])
+  }, [checkinId, venueId, navigation, handledMatchId])
 );
 const endCheckin = async () => {
   try {

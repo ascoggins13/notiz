@@ -9,7 +9,9 @@ export type RootStackParamList = {
   Settings: undefined;
   PrivacySafety: undefined;
   GuestHome: undefined;
-  Home: undefined;
+  Home: {
+    handledMatchId?: string;
+  } | undefined;
   Profile: undefined;
   LocationSelect: undefined;
   BlockedUsers: undefined;

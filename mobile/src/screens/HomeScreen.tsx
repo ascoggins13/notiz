@@ -17,7 +17,7 @@ import {
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
 
-export function HomeScreen({ navigation }: Props) {
+export function HomeScreen({ navigation, route }: Props) {
   const [checkingActive, setCheckingActive] = useState(false);
   const [places, setPlaces] = useState<
   {
@@ -65,6 +65,7 @@ useFocusEffect(
             venueId: result.checkin.venueId,
             venueName: result.checkin.venueName,
             venueType: result.checkin.venueType,
+            handledMatchId: route.params?.handledMatchId,
           });
         }
       } catch (e) {
@@ -84,7 +85,7 @@ useFocusEffect(
     return () => {
       active = false;
     };
-  }, [navigation])
+  }, [navigation, route.params?.handledMatchId])
 );
 useFocusEffect(
   useCallback(() => {

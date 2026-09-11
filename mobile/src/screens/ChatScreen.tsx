@@ -217,7 +217,14 @@ export function ChatScreen({ route, navigation }: Props) {
   
               navigation.reset({
                 index: 0,
-                routes: [{ name: 'Home' }],
+                routes: [
+                  {
+                    name: 'Home',
+                    params: {
+                      handledMatchId: route.params.matchId,
+                    },
+                  },
+                ],
               });
             } catch (e) {
               Alert.alert(
@@ -300,25 +307,17 @@ export function ChatScreen({ route, navigation }: Props) {
   <Pressable
   style={styles.homeButton}
   onPress={() => {
-    const state = navigation.getState();
-  
-    const activeVenueRoute = [...state.routes]
-      .reverse()
-      .find((item) => item.name === 'ActiveVenue');
-  
-    if (activeVenueRoute) {
-      navigation.dispatch({
-        type: 'SET_PARAMS',
-        source: activeVenueRoute.key,
-        payload: {
+    navigation.reset({
+      index: 0,
+      routes: [
+        {
+          name: 'Home',
           params: {
             handledMatchId: route.params.matchId,
           },
         },
-      });
-    }
-  
-    navigation.pop(3);
+      ],
+    });
   }}
   >
     <Text style={styles.homeButtonText}>
