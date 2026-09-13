@@ -3,11 +3,14 @@ import { Alert } from 'react-native';
 import { api } from '../services/api';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import React, {
+  useCallback,
   useEffect,
   useMemo,
   useState,
 } from 'react';
 import {
+  AppState,
+  RefreshControl,
   ScrollView,
   Pressable,
   SafeAreaView,
@@ -64,58 +67,86 @@ export function LocationSelectScreen({ navigation }: Props) {
     longitude: number;
   } | null>(null);
 
-  useEffect(() => {
-    const loadLocation = async () => {
-      try {
-        const permission =
-          await Location.requestForegroundPermissionsAsync();
-  
-        if (permission.status !== 'granted') {
-          Alert.alert(
-            'Location needed',
-            'Notiz uses your location to show places near you.'
-          );
-          return;
-        }
-  
-        const position =
-          await Location.getCurrentPositionAsync({
-            accuracy: Location.Accuracy.Balanced,
-          });
-  
-        const nextCoordinates = {
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-        };
-  
-        setCoordinates(nextCoordinates);
-        const nearbyResult = await api<{
-          venues: Venue[];
-        }>(
-          `/api/venues/nearby?lat=${nextCoordinates.latitude}&lng=${nextCoordinates.longitude}`
-        );
+  const [refreshing, setRefreshing] = useState(false);
 
-        console.log(
-          'NEARBY VENUES FROM SERVER:',
-          nearbyResult.venues
-        );
-        
-        setVenues(nearbyResult.venues);
-  
-        console.log(
-          'NOTIZ LOCATION:',
-          nextCoordinates
-        );
-      } catch (error) {
-        console.warn(
-          'Could not get current location:',
-          error
-        );
-      }
+const loadLocation = useCallback(async () => {
+  try {
+    const permission =
+      await Location.requestForegroundPermissionsAsync();
+
+    if (permission.status !== 'granted') {
+      Alert.alert(
+        'Location needed',
+        'Notiz uses your location to show places near you.'
+      );
+      return;
+    }
+
+    const position =
+      await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      });
+
+    const nextCoordinates = {
+      latitude: position.coords.latitude,
+      longitude: position.coords.longitude,
     };
-  
-    loadLocation();
-  }, []);
+
+    setCoordinates(nextCoordinates);
+
+    const nearbyResult = await api<{
+      venues: Venue[];
+    }>(
+      `/api/venues/nearby?lat=${nextCoordinates.latitude}&lng=${nextCoordinates.longitude}`
+    );
+
+    console.log(
+      'NEARBY VENUES FROM SERVER:',
+      nearbyResult.venues
+    );
+
+    setVenues(nearbyResult.venues);
+
+    console.log(
+      'NOTIZ LOCATION:',
+      nextCoordinates
+    );
+  } catch (error) {
+    console.warn(
+      'Could not get current location:',
+      error
+    );
+  }
+}, []);
+
+useEffect(() => {
+  loadLocation();
+}, [loadLocation]);
+
+useEffect(() => {
+  const subscription = AppState.addEventListener(
+    'change',
+    (nextState) => {
+      if (nextState === 'active') {
+        loadLocation();
+      }
+    }
+  );
+
+  return () => {
+    subscription.remove();
+  };
+}, [loadLocation]);
+
+const refreshNearbyPlaces = useCallback(async () => {
+  setRefreshing(true);
+
+  try {
+    await loadLocation();
+  } finally {
+    setRefreshing(false);
+  }
+}, [loadLocation]);
   const [venues, setVenues] = useState<Venue[]>([]);
 
   const filteredPlaces = useMemo(() => {
@@ -137,10 +168,16 @@ export function LocationSelectScreen({ navigation }: Props) {
   };
 return (
   <SafeAreaView style={styles.page}>
-    <ScrollView
-      showsVerticalScrollIndicator={false}
-      contentContainerStyle={styles.scrollContent}
-    >
+   <ScrollView
+  showsVerticalScrollIndicator={false}
+  contentContainerStyle={styles.scrollContent}
+  refreshControl={
+    <RefreshControl
+      refreshing={refreshing}
+      onRefresh={refreshNearbyPlaces}
+    />
+  }
+>
       <View style={styles.header}>
         <Text style={styles.eyebrow}>CHECK IN</Text>
         <Text style={styles.title}>Where are you?</Text>

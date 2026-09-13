@@ -5,3 +5,6 @@ dist/
 *.log
 service-account*.json
 .DS_Store
+
+# Expo generated native projects
+mobile/ios/

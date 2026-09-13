@@ -4,12 +4,19 @@
     "slug": "notiz",
     "version": "0.1.0",
     "orientation": "portrait",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "plugins": [
-      "expo-notifications"
+      "expo-notifications",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Notiz uses your location to show nearby places where you can check in and connect with people you notice."
+        }
+      ]
     ],
     "ios": {
-      "supportsTablet": true,
+      "supportsTablet": false,
       "bundleIdentifier": "com.scogginstechnologies.notiz",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
