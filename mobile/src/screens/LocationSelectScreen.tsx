@@ -262,12 +262,6 @@ return (
         })}
       </View>
 
-      <Pressable style={styles.missingPlace}>
-        <Text style={styles.missingText}>
-          Don’t see your location?
-        </Text>
-        <Text style={styles.addText}>Add a place</Text>
-      </Pressable>
     </ScrollView>
   </SafeAreaView>
   );
@@ -466,23 +460,5 @@ const styles = StyleSheet.create({
   arrow: {
     fontSize: 28,
     color: '#A6A1AA',
-  },
-
-  missingPlace: {
-    marginTop: 22,
-    alignItems: 'center',
-    paddingVertical: 14,
-  },
-
-  missingText: {
-    color: '#8C8791',
-    fontSize: 13,
-  },
-
-  addText: {
-    marginTop: 4,
-    color: '#5427A5',
-    fontSize: 14,
-    fontWeight: '800',
   },
 });
